@@ -1,6 +1,6 @@
 # super_team
 team members:
-Malaikah
-Naphtali
-Rebecca
-Veeresh
+Malaikah H.
+Naphtali O. 
+Rebecca B.
+Veeresh T.
