@@ -1,0 +1,31 @@
+sas<- read.csv('react_data.csv')
+sas$date<- as.POSIXct(sas$timestamp,
+                      origin = "1970-01-01")
+library(lubridate)
+sas$year<- year(sas$date)
+sas_prior<- sas[which(sas$year==2019),]
+sas_prior$hour<- hour(sas_prior$date)
+
+
+
+# date 
+timemap<- read.csv('timemap.csv')
+
+sas_prior<- merge(sas_prior, timemap, by=c('timezone'), all.x = TRUE)
+sas_prior$tz<- as.numeric(sas_prior$tz)
+sas_prior$hour1<- sas_prior$hour+sas_prior$tz
+sas_prior$hour2<- ifelse(sas_prior$hour1<0, sas_prior$hour1+24, ifelse(sas_prior$hour1>24,sas_prior$hour1-24,sas_prior$hour1))
+sas_prior <- sas_prior[complete.cases(sas_prior$hour2), ]
+
+library('doBy')
+sas_prior$owl<- ifelse(sas_prior$hour2>=0 & sas_prior$hour2<=5, 1,0)
+sas_prior$count<- 1
+
+library(dplyr)
+sas_prior_summary<- summaryBy(hour2+count~author, data=sas_prior, FUN= c(sum, mean), na.rm=TRUE)
+sas_prior_summary$nightowl<- ifelse(sas_prior_summary$hour2.mean<=5, 1, 0)
+sas_prior_summary$typeofcommitter<- ifelse(sas_prior_summary$nightowl==1, "night owl", "early bird")
+
+# Change histogram plot fill colors by groups
+ggplot(sas_prior_summary, aes(x=hour2.mean, fill=typeofcommitter, color=typeofcommitter)) +
+  geom_histogram(position="identity")
